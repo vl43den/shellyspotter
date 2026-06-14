@@ -113,6 +113,9 @@ POST   /api/agent/report                   [Agent]
 See **[docs/demo-setup.md](docs/demo-setup.md)** for full setup, Redmine first-time
 configuration, and the live Shelly demo over a phone hotspot.
 
+For cloud deployment (VPS + Caddy/TLS) and running the Agent on a Raspberry Pi,
+see **[docs/deployment.md](docs/deployment.md)**.
+
 ## Security
 
 See [docs/threat-model.md](docs/threat-model.md) for the full STRIDE threat model.

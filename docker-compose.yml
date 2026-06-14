@@ -1,0 +1,142 @@
+version: "3.9"
+
+# ─── Networks ────────────────────────────────────────────────────────────────
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    driver: bridge
+  ticket-net:
+    driver: bridge
+
+# ─── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  mssql-data:
+  redis-data:
+  redmine-data:
+  redmine-db-data:
+
+services:
+
+  # ── SQL Server (Core-MS database) ──────────────────────────────────────────
+  core-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - backend-net
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -C
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Redis (Token-MS store) ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: redis-cli -a "$$REDIS_PASSWORD" ping
+      interval: 10s
+      retries: 5
+
+  # ── Token Microservice ─────────────────────────────────────────────────────
+  token-ms:
+    build:
+      context: ./src/ShellySpotter.TokenService
+    environment:
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD}"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "shellyspotter-token"
+      Jwt__Audience: "shellyspotter"
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend-net
+      - frontend-net
+    restart: unless-stopped
+
+  # ── Core Microservice ──────────────────────────────────────────────────────
+  core:
+    build:
+      context: ./src/ShellySpotter.Core
+    ports:
+      - "127.0.0.1:8082:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: >-
+        Server=core-db;Database=ShellySpotter;User Id=sa;
+        Password=${DB_PASSWORD};TrustServerCertificate=True;
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "shellyspotter-token"
+      Jwt__Audience: "shellyspotter"
+      Redmine__BaseUrl: "http://redmine:3000"
+      Redmine__ApiKey: "${REDMINE_API_KEY}"
+      Redmine__ProjectId: "shellyspotter"
+    depends_on:
+      core-db:
+        condition: service_healthy
+      token-ms:
+        condition: service_started
+    networks:
+      - backend-net
+      - frontend-net
+    restart: unless-stopped
+
+  # ── Web Application (Blazor) ───────────────────────────────────────────────
+  webapp:
+    build:
+      context: ./src/ShellySpotter.WebApp
+    environment:
+      Services__CoreUrl: "http://core:8080"
+      Services__TokenServiceUrl: "http://token-ms:8080"
+    ports:
+      - "127.0.0.1:80:8080"
+    depends_on:
+      - core
+      - token-ms
+    networks:
+      - frontend-net
+    restart: unless-stopped
+
+  # ── Redmine (On-premise ticket system) ────────────────────────────────────
+  redmine-db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: "${REDMINE_DB_ROOT_PASSWORD}"
+      MARIADB_DATABASE: redmine
+      MARIADB_USER: redmine
+      MARIADB_PASSWORD: "${REDMINE_DB_PASSWORD}"
+    volumes:
+      - redmine-db-data:/var/lib/mysql
+    networks:
+      - ticket-net
+    restart: unless-stopped
+
+  redmine:
+    image: redmine:5
+    environment:
+      REDMINE_DB_MYSQL: redmine-db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: "${REDMINE_DB_PASSWORD}"
+      REDMINE_SECRET_KEY_BASE: "${REDMINE_SECRET_KEY}"
+    volumes:
+      - redmine-data:/usr/src/redmine/files
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - redmine-db
+    networks:
+      - ticket-net
+      - backend-net
+    restart: unless-stopped

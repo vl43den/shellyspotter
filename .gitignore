@@ -1,0 +1,30 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+
+# Secrets — NEVER commit these
+.env
+appsettings.Production.json
+appsettings.Local.json
+
+# Build output
+publish/
+out/
+
+# Docker volumes
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rider / JetBrains
+.idea/
+
+# NuGet
+*.nupkg
+packages/

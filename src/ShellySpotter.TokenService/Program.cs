@@ -35,8 +35,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+var allowedOrigin = builder.Configuration["AllowedCorsOrigin"];
 builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    options.AddDefaultPolicy(p =>
+    {
+        if (string.IsNullOrWhiteSpace(allowedOrigin))
+            p.AllowAnyOrigin();                       // development
+        else
+            p.WithOrigins(allowedOrigin).AllowCredentials();  // production
+        p.AllowAnyHeader().AllowAnyMethod();
+    }));
 
 var app = builder.Build();
 

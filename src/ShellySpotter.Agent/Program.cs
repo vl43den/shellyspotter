@@ -7,11 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<AgentConfig>(builder.Configuration.GetSection("Agent"));
 
-builder.Services.AddHttpClient("shelly").ConfigurePrimaryHttpMessageHandler(() =>
-    new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
+var isDev = builder.Environment.IsDevelopment();
 
-builder.Services.AddHttpClient("core").ConfigurePrimaryHttpMessageHandler(() =>
-    new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator });
+// In Development we accept any cert (self-signed/local). In Production the Agent
+// talks to Core over real HTTPS (Let's Encrypt), so certificate validation stays on.
+HttpClientHandler MakeHandler() => isDev
+    ? new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator }
+    : new HttpClientHandler();
+
+// The Shelly is reached over plain HTTP on the LAN, so cert handling is moot there.
+builder.Services.AddHttpClient("shelly").ConfigurePrimaryHttpMessageHandler(MakeHandler);
+builder.Services.AddHttpClient("core").ConfigurePrimaryHttpMessageHandler(MakeHandler);
 
 builder.Services.AddHttpClient();
 

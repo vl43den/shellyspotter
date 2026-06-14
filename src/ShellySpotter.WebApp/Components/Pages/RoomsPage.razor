@@ -1,0 +1,71 @@
+@page "/rooms"
+@rendermode InteractiveServer
+@inject AuthService Auth
+@inject CoreApiService Api
+@inject NavigationManager Nav
+
+<PageTitle>Rooms — ShellySpotter</PageTitle>
+
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Server Rooms</h3>
+        @if (Auth.IsEmployee)
+        {
+            <button class="btn btn-primary" @onclick="() => _showCreate = true">+ Add Room</button>
+        }
+    </div>
+
+    @if (_showCreate)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>New Room</h5>
+                <div class="mb-2"><input class="form-control" placeholder="Name" @bind="_newName" /></div>
+                <div class="mb-2"><input class="form-control" placeholder="Description" @bind="_newDesc" /></div>
+                <div class="mb-2"><input class="form-control" placeholder="Customer username" @bind="_newOwner" /></div>
+                <button class="btn btn-success me-2" @onclick="CreateRoom">Save</button>
+                <button class="btn btn-secondary" @onclick="() => _showCreate = false">Cancel</button>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Name</th><th>Description</th><th>Owner</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var room in _rooms)
+                {
+                    <tr>
+                        <td>@room.Name</td>
+                        <td>@room.Description</td>
+                        <td><span class="badge bg-secondary">@room.OwnerId</span></td>
+                        <td>
+                            <a href="/configuration/@room.Id" class="btn btn-sm btn-outline-primary">Configure</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<RoomVm> _rooms = [];
+    private bool _showCreate;
+    private string _newName = string.Empty, _newDesc = string.Empty, _newOwner = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        _rooms = await Api.GetRoomsAsync();
+    }
+
+    private async Task CreateRoom()
+    {
+        if (string.IsNullOrWhiteSpace(_newName)) return;
+        await Api.CreateRoomAsync(_newName, _newDesc, _newOwner);
+        _showCreate = false;
+        _newName = _newDesc = _newOwner = string.Empty;
+        _rooms = await Api.GetRoomsAsync();
+    }
+}

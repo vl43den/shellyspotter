@@ -1,0 +1,169 @@
+@page "/configuration/{RoomId:int}"
+@rendermode InteractiveServer
+@inject AuthService Auth
+@inject CoreApiService Api
+@inject NavigationManager Nav
+
+<PageTitle>Configuration — ShellySpotter</PageTitle>
+
+<div class="container py-3">
+    <h3>Room Configuration — @_roomName</h3>
+
+    <!-- Ping Targets -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between">
+            <strong>Ping Targets</strong>
+            @if (Auth.IsEmployee)
+            {
+                <button class="btn btn-sm btn-primary" @onclick="() => _addPing = !_addPing">+ Add</button>
+            }
+        </div>
+        <div class="card-body">
+            @if (_addPing)
+            {
+                <div class="row g-2 mb-3">
+                    <div class="col"><input class="form-control" placeholder="Name" @bind="_pingName" /></div>
+                    <div class="col"><input class="form-control" placeholder="IP Address" @bind="_pingIp" /></div>
+                    <div class="col-auto">
+                        <button class="btn btn-success" @onclick="AddPingTarget">Save</button>
+                    </div>
+                </div>
+            }
+            <table class="table table-sm">
+                <thead><tr><th>Name</th><th>IP</th><th>Enabled</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var t in _pingTargets)
+                    {
+                        <tr>
+                            <td>@t.Name</td>
+                            <td><code>@t.IpAddress</code></td>
+                            <td><span class="badge @(t.IsEnabled ? "bg-success" : "bg-secondary")">@(t.IsEnabled ? "Yes" : "No")</span></td>
+                            <td>
+                                @if (Auth.IsEmployee)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePingTarget(t.Id)">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Maintenance Windows -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between">
+            <strong>Maintenance Windows</strong>
+            @if (Auth.IsEmployee)
+            {
+                <button class="btn btn-sm btn-primary" @onclick="() => _addWindow = !_addWindow">+ Add</button>
+            }
+        </div>
+        <div class="card-body">
+            @if (_addWindow)
+            {
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col">
+                        <label class="form-label small">Day</label>
+                        <select class="form-select" @bind="_winDay">
+                            @foreach (DayOfWeek d in Enum.GetValues<DayOfWeek>())
+                            {
+                                <option value="@((int)d)">@d</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Start</label>
+                        <input type="time" class="form-control" value="@_winStart" @onchange="e => _winStart = e.Value?.ToString() ?? _winStart" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">End</label>
+                        <input type="time" class="form-control" value="@_winEnd" @onchange="e => _winEnd = e.Value?.ToString() ?? _winEnd" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label small">Label</label>
+                        <input class="form-control" placeholder="optional" @bind="_winLabel" />
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-success" @onclick="AddWindow">Save</button>
+                    </div>
+                </div>
+            }
+            <table class="table table-sm">
+                <thead><tr><th>Day</th><th>From</th><th>To</th><th>Label</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var w in _windows)
+                    {
+                        <tr>
+                            <td>@w.DayOfWeek</td>
+                            <td>@w.StartTime.ToString(@"hh\:mm")</td>
+                            <td>@w.EndTime.ToString(@"hh\:mm")</td>
+                            <td>@(w.Label ?? "—")</td>
+                            <td>
+                                @if (Auth.IsEmployee)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteWindow(w.Id)">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int RoomId { get; set; }
+
+    private string _roomName = string.Empty;
+    private List<PingTargetVm> _pingTargets = [];
+    private List<MaintenanceWindowVm> _windows = [];
+
+    private bool _addPing, _addWindow;
+    private string _pingName = string.Empty, _pingIp = string.Empty;
+    private int _winDay;
+    private string _winStart = "08:00", _winEnd = "18:00";
+    private string _winLabel = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        var rooms = await Api.GetRoomsAsync();
+        _roomName = rooms.FirstOrDefault(r => r.Id == RoomId)?.Name ?? $"Room {RoomId}";
+        _pingTargets = await Api.GetPingTargetsAsync(RoomId);
+        _windows = await Api.GetMaintenanceWindowsAsync(RoomId);
+    }
+
+    private async Task AddPingTarget()
+    {
+        if (!string.IsNullOrWhiteSpace(_pingIp))
+            await Api.AddPingTargetAsync(RoomId, _pingName, _pingIp);
+        _addPing = false;
+        _pingName = _pingIp = string.Empty;
+        _pingTargets = await Api.GetPingTargetsAsync(RoomId);
+    }
+
+    private async Task DeletePingTarget(int id)
+    {
+        await Api.DeletePingTargetAsync(RoomId, id);
+        _pingTargets = await Api.GetPingTargetsAsync(RoomId);
+    }
+
+    private async Task AddWindow()
+    {
+        await Api.AddMaintenanceWindowAsync(
+            RoomId, (DayOfWeek)_winDay,
+            TimeSpan.Parse(_winStart), TimeSpan.Parse(_winEnd),
+            string.IsNullOrWhiteSpace(_winLabel) ? null : _winLabel);
+        _addWindow = false;
+        _windows = await Api.GetMaintenanceWindowsAsync(RoomId);
+    }
+
+    private async Task DeleteWindow(int id)
+    {
+        await Api.DeleteMaintenanceWindowAsync(RoomId, id);
+        _windows = await Api.GetMaintenanceWindowsAsync(RoomId);
+    }
+}

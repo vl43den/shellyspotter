@@ -1,0 +1,68 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Login — ShellySpotter</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">ShellySpotter Login</h4>
+
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="alert alert-danger">@_error</div>
+                    }
+
+                    <EditForm Model="_model" OnValidSubmit="HandleLogin">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <InputText class="form-control" @bind-Value="_model.Username" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <InputText type="password" class="form-control" @bind-Value="_model.Password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" disabled="@_loading">
+                            @(_loading ? "Logging in…" : "Login")
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string _error = string.Empty;
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        if (Auth.IsLoggedIn)
+            Nav.NavigateTo("/");
+    }
+
+    private async Task HandleLogin()
+    {
+        _loading = true;
+        _error = string.Empty;
+        var ok = await Auth.LoginAsync(_model.Username, _model.Password);
+        _loading = false;
+        if (ok)
+            Nav.NavigateTo("/");
+        else
+            _error = "Invalid username or password.";
+    }
+
+    private class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

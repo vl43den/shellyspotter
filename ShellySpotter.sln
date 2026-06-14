@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{83C230D7-EC94-41FD-ABED-3B604A825DE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShellySpotter.Core", "src\ShellySpotter.Core\ShellySpotter.Core.csproj", "{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShellySpotter.TokenService", "src\ShellySpotter.TokenService\ShellySpotter.TokenService.csproj", "{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShellySpotter.Agent", "src\ShellySpotter.Agent\ShellySpotter.Agent.csproj", "{3A374118-1E0C-4073-A9C9-87C6C93405CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShellySpotter.WebApp", "src\ShellySpotter.WebApp\ShellySpotter.WebApp.csproj", "{DC49B1BE-AFF2-4FF7-B061-F881F09924D0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A374118-1E0C-4073-A9C9-87C6C93405CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A374118-1E0C-4073-A9C9-87C6C93405CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A374118-1E0C-4073-A9C9-87C6C93405CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A374118-1E0C-4073-A9C9-87C6C93405CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC49B1BE-AFF2-4FF7-B061-F881F09924D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC49B1BE-AFF2-4FF7-B061-F881F09924D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC49B1BE-AFF2-4FF7-B061-F881F09924D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC49B1BE-AFF2-4FF7-B061-F881F09924D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C5781FE2-BB3A-40F0-A5EF-AEFF8B548065} = {83C230D7-EC94-41FD-ABED-3B604A825DE3}
+		{E3103C39-98EB-427D-BA9F-B90A6ADB4BE2} = {83C230D7-EC94-41FD-ABED-3B604A825DE3}
+		{3A374118-1E0C-4073-A9C9-87C6C93405CE} = {83C230D7-EC94-41FD-ABED-3B604A825DE3}
+		{DC49B1BE-AFF2-4FF7-B061-F881F09924D0} = {83C230D7-EC94-41FD-ABED-3B604A825DE3}
+	EndGlobalSection
+EndGlobal

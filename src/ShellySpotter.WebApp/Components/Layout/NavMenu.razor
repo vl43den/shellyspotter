@@ -1,0 +1,41 @@
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">ShellySpotter</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        @if (Auth.IsLoggedIn)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Dashboard</NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="rooms">Rooms</NavLink>
+            </div>
+            <div class="nav-item px-3 mt-auto">
+                <button class="btn btn-link nav-link text-danger" @onclick="Logout">Logout</button>
+            </div>
+        }
+        else
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="login">Login</NavLink>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}

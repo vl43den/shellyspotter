@@ -1,0 +1,6 @@
+@ShellySpotter.TokenService_HostAddress = http://localhost:5160
+
+GET {{ShellySpotter.TokenService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

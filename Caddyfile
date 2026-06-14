@@ -1,0 +1,24 @@
+# ShellySpotter reverse proxy — automatic HTTPS via Let's Encrypt.
+# Replace the domains below with your own. Caddy obtains/renews certs itself.
+#
+# DNS: point these A records at your VPS public IP:
+#   shellyspotter.example.com        -> WebApp (dashboard)
+#   api.shellyspotter.example.com    -> Core-MS  (Agent + WebApp call this)
+#   auth.shellyspotter.example.com   -> Token-MS (login / JWT)
+#   tickets.shellyspotter.example.com-> Redmine
+
+shellyspotter.example.com {
+    reverse_proxy webapp:8080
+}
+
+api.shellyspotter.example.com {
+    reverse_proxy core:8080
+}
+
+auth.shellyspotter.example.com {
+    reverse_proxy token-ms:8080
+}
+
+tickets.shellyspotter.example.com {
+    reverse_proxy redmine:3000
+}

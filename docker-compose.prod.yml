@@ -1,0 +1,56 @@
+# Production overlay — use together with the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Adds a Caddy reverse proxy that terminates TLS (Let's Encrypt) and is the ONLY
+# service exposed to the internet (ports 80/443). All other services drop their
+# host port mappings and are reachable only on the internal Docker networks.
+
+networks:
+  proxy-net:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - proxy-net
+      - frontend-net
+      - ticket-net
+    depends_on:
+      - webapp
+      - core
+      - token-ms
+      - redmine
+
+  # Remove direct host exposure — everything goes through Caddy now.
+  webapp:
+    ports: !reset []
+    environment:
+      Services__CoreUrl: "http://core:8080"
+      Services__TokenServiceUrl: "http://token-ms:8080"
+
+  core:
+    ports: !reset []
+    environment:
+      # Public issuer/audience stay logical names; CORS locked to the web origin.
+      AllowedCorsOrigin: "https://shellyspotter.example.com"
+
+  token-ms:
+    ports: !reset []
+    environment:
+      AllowedCorsOrigin: "https://shellyspotter.example.com"
+
+  redmine:
+    ports: !reset []

@@ -102,6 +102,7 @@ All endpoints require `Authorization: Bearer <token>`.
 ```
 GET    /api/rooms
 POST   /api/rooms                          [Employee/Admin]
+PUT    /api/rooms/{id}                      [Employee/Admin]
 GET    /api/rooms/{id}/readings
 GET    /api/rooms/{id}/readings/latest
 POST   /api/rooms/{id}/readings            [Agent/Employee/Admin]
@@ -114,6 +115,18 @@ GET    /api/rooms/{id}/maintenance-windows
 POST   /api/rooms/{id}/maintenance-windows [Employee/Admin]
 POST   /api/agent/report                   [Agent]
 ```
+
+## Alerting
+
+Core-MS raises alerts automatically when an agent report or sensor reading arrives:
+
+- **Door opened outside a maintenance window** → urgent alert + Redmine ticket.
+  Suppressed during a configured maintenance window; auto-resolved when the door closes.
+- **Temperature above the room's limit** → urgent alert + Redmine ticket.
+  The limit is per-room (`HighTemperatureThreshold`, default 28 °C, editable in the
+  room configuration). Auto-resolved once the temperature drops back below the limit
+  (with a 1 °C hysteresis margin to avoid flapping). Not suppressed by maintenance
+  windows, since overheating is an environmental hazard regardless of access.
 
 ## Setup & Demo
 

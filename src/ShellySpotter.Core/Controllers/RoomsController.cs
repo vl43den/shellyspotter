@@ -23,7 +23,7 @@ public class RoomsController(AppDbContext db) : ControllerBase
             query = query.Where(r => r.OwnerId == userId);
 
         var rooms = await query
-            .Select(r => new RoomDto(r.Id, r.Name, r.Description, r.OwnerId))
+            .Select(r => new RoomDto(r.Id, r.Name, r.Description, r.OwnerId, r.HighTemperatureThreshold))
             .ToListAsync();
 
         return Ok(rooms);
@@ -36,7 +36,7 @@ public class RoomsController(AppDbContext db) : ControllerBase
         if (room is null) return NotFound();
         if (!CanAccessRoom(room)) return Forbid();
 
-        return Ok(new RoomDto(room.Id, room.Name, room.Description, room.OwnerId));
+        return Ok(new RoomDto(room.Id, room.Name, room.Description, room.OwnerId, room.HighTemperatureThreshold));
     }
 
     [HttpPost]
@@ -47,12 +47,13 @@ public class RoomsController(AppDbContext db) : ControllerBase
         {
             Name = request.Name,
             Description = request.Description,
-            OwnerId = request.OwnerId
+            OwnerId = request.OwnerId,
+            HighTemperatureThreshold = request.HighTemperatureThreshold
         };
         db.Rooms.Add(room);
         await db.SaveChangesAsync();
 
-        var dto = new RoomDto(room.Id, room.Name, room.Description, room.OwnerId);
+        var dto = new RoomDto(room.Id, room.Name, room.Description, room.OwnerId, room.HighTemperatureThreshold);
         return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, dto);
     }
 
@@ -65,6 +66,7 @@ public class RoomsController(AppDbContext db) : ControllerBase
 
         room.Name = request.Name;
         room.Description = request.Description;
+        room.HighTemperatureThreshold = request.HighTemperatureThreshold;
         await db.SaveChangesAsync();
         return NoContent();
     }

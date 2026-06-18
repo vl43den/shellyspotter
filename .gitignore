@@ -15,8 +15,8 @@ appsettings.Local.json
 publish/
 out/
 
-# Docker volumes
-data/
+# Docker volumes (root-level only — must NOT match source folders like src/.../Data/)
+/data/
 
 # OS
 .DS_Store

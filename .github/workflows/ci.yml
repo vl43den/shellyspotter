@@ -12,7 +12,7 @@ permissions:
 jobs:
   # ── Build the whole solution in Release ──────────────────────────────────────
   build:
-    name: Build (.NET 8)
+    name: Build & Test (.NET 8)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,9 @@ jobs:
 
       - name: Build
         run: dotnet build ShellySpotter.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test ShellySpotter.sln --no-build -c Release
 
   # ── Secret scanning with TruffleHog ──────────────────────────────────────────
   secret-scan:

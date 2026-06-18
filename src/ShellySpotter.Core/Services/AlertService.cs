@@ -4,7 +4,7 @@ using ShellySpotter.Core.Models;
 
 namespace ShellySpotter.Core.Services;
 
-public class AlertService(AppDbContext db, MaintenanceWindowService maintenanceService, TicketService ticketService, ILogger<AlertService> logger)
+public class AlertService(AppDbContext db, MaintenanceWindowService maintenanceService, ITicketService ticketService, ILogger<AlertService> logger)
 {
     // Hysteresis margin (°C): a high-temperature alert is only resolved once the
     // reading drops this far below the threshold, to avoid alert/resolve flapping

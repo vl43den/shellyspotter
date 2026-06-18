@@ -159,8 +159,9 @@ Core-MS / Token-MS architecture, and the entity-relationship diagram.
 
 GitHub Actions, defined in [.github/workflows](.github/workflows):
 
-- **CI** (`ci.yml`) — on every PR and push to `main`: build the solution, run a
-  TruffleHog secret scan, and generate a CycloneDX SBOM.
+- **CI** (`ci.yml`) — on every PR and push to `main`: build **and unit-test** the
+  solution (xUnit, see `tests/`), run a TruffleHog secret scan, and generate a
+  CycloneDX SBOM.
 - **CD** (`cd.yml`) — on every push to `main`: build all four service images and
   publish them to the GitHub Container Registry as
   `ghcr.io/vl43den/shellyspotter-<service>:latest` (and a commit-SHA tag). A host
@@ -176,6 +177,8 @@ shellyspotter/
 │   ├── ShellySpotter.Core/         # Core REST API + MSSQL
 │   ├── ShellySpotter.TokenService/ # JWT auth + Redis
 │   └── ShellySpotter.WebApp/       # Blazor Server frontend
+├── tests/
+│   └── ShellySpotter.Core.Tests/   # xUnit tests (alerting, access control, windows)
 ├── docs/
 │   ├── threat-model.md
 │   ├── diagrams.md             # class + ER diagrams

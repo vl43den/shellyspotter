@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace ShellySpotter.Core.Services;
 
-public class TicketService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<TicketService> logger)
+public class TicketService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<TicketService> logger) : ITicketService
 {
     public async Task<string?> CreateTicketAsync(string subject, string description)
     {

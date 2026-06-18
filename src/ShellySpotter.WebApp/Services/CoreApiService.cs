@@ -105,6 +105,14 @@ public class CoreApiService(IHttpClientFactory httpClientFactory, AuthService au
         return r.IsSuccessStatusCode;
     }
 
+    public async Task<bool> UpdateRoomAsync(int roomId, string name, string description, double highTemperatureThreshold)
+    {
+        var body = new { name, description, highTemperatureThreshold };
+        var content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        var r = await CreateClient().PutAsync($"/api/rooms/{roomId}", content);
+        return r.IsSuccessStatusCode;
+    }
+
     public async Task<List<SensorReadingVm>> GetReadingsAsync(int roomId, int limit = 48)
     {
         var r = await CreateClient().GetAsync($"/api/rooms/{roomId}/readings?limit={limit}");

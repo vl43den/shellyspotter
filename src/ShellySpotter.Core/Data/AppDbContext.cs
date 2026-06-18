@@ -19,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasKey(r => r.Id);
             e.Property(r => r.Name).IsRequired().HasMaxLength(100);
             e.Property(r => r.OwnerId).IsRequired().HasMaxLength(100);
+            e.Property(r => r.HighTemperatureThreshold).HasDefaultValue(28.0);
         });
 
         modelBuilder.Entity<SensorReading>(e =>
@@ -61,7 +62,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             Id = 1,
             Name = "Server Room A",
             Description = "Primary server room",
-            OwnerId = "customer1"
+            OwnerId = "customer1",
+            HighTemperatureThreshold = 28.0
         });
     }
 }

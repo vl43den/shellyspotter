@@ -7,6 +7,9 @@ public class Room
     public string Description { get; set; } = string.Empty;
     public string OwnerId { get; set; } = string.Empty; // username of the customer
 
+    /// <summary>Upper temperature limit (°C). A reading above this raises a TemperatureHigh alert.</summary>
+    public double HighTemperatureThreshold { get; set; } = 28.0;
+
     public ICollection<SensorReading> SensorReadings { get; set; } = new List<SensorReading>();
     public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
     public ICollection<PingTarget> PingTargets { get; set; } = new List<PingTarget>();

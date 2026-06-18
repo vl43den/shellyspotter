@@ -1,6 +1,6 @@
 namespace ShellySpotter.WebApp.Models;
 
-public record RoomVm(int Id, string Name, string Description, string OwnerId);
+public record RoomVm(int Id, string Name, string Description, string OwnerId, double HighTemperatureThreshold);
 
 public record SensorReadingVm(
     int Id, int RoomId, DateTime Timestamp,

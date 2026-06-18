@@ -1,5 +1,5 @@
 @page "/rooms"
-@rendermode InteractiveServer
+@rendermode AppRenderModes.InteractiveServerNoPrerender
 @inject AuthService Auth
 @inject CoreApiService Api
 @inject NavigationManager Nav
@@ -56,6 +56,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Auth.InitializeAsync();
         if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
         _rooms = await Api.GetRoomsAsync();
     }

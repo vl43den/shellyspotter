@@ -1,14 +1,20 @@
 @page "/"
-@rendermode InteractiveServer
+@rendermode AppRenderModes.InteractiveServerNoPrerender
 @inject AuthService Auth
 @inject CoreApiService Api
 @inject NavigationManager Nav
 
 <PageTitle>Dashboard — ShellySpotter</PageTitle>
 
+@if (Auth.CurrentUser is null)
+{
+    <div class="container-fluid py-3"><p class="text-muted">Loading…</p></div>
+}
+else
+{
 <div class="container-fluid py-3">
     <h3>Dashboard</h3>
-    <p class="text-muted">Welcome, <strong>@Auth.CurrentUser!.Username</strong> (@Auth.CurrentUser.Role)</p>
+    <p class="text-muted">Welcome, <strong>@Auth.CurrentUser.Username</strong> (@Auth.CurrentUser.Role)</p>
 
     @if (_rooms.Count == 0)
     {
@@ -94,6 +100,7 @@
         </div>
     }
 </div>
+}
 
 @code {
     private List<RoomVm> _rooms = [];
@@ -102,6 +109,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Auth.InitializeAsync();
         if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
         await LoadDataAsync();
     }

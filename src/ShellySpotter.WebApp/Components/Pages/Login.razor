@@ -1,5 +1,5 @@
 @page "/login"
-@rendermode InteractiveServer
+@rendermode AppRenderModes.InteractiveServerNoPrerender
 @inject AuthService Auth
 @inject NavigationManager Nav
 
@@ -42,8 +42,11 @@
     private string _error = string.Empty;
     private bool _loading;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // Restore any persisted session so an already-authenticated user who hits
+        // /login (e.g. via the nav) is sent straight to the dashboard.
+        await Auth.InitializeAsync();
         if (Auth.IsLoggedIn)
             Nav.NavigateTo("/");
     }

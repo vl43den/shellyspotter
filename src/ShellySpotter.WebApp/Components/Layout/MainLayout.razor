@@ -3,7 +3,7 @@
 
 <div class="page">
     <div class="sidebar">
-        <NavMenu @rendermode="InteractiveServer" />
+        <NavMenu @rendermode="AppRenderModes.InteractiveServerNoPrerender" />
     </div>
 
     <main>
@@ -18,11 +18,9 @@
 </div>
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            await Auth.InitializeAsync();
-    }
+    // Session restore now happens in each interactive component's OnInitializedAsync
+    // (prerender is disabled, so JS interop is available there). No layout-level
+    // OnAfterRender restore is needed.
 }
 
 <div id="blazor-error-ui">

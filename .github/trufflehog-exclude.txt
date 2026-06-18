@@ -1,0 +1,6 @@
+# Paths excluded from secret scanning (regex, one per line).
+# .git holds local-only metadata (remote URLs, the CI checkout token) that is
+# never part of the published repository. bin/obj are build outputs.
+\.git/
+/bin/
+/obj/

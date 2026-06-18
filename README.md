@@ -138,14 +138,22 @@ see **[docs/deployment.md](docs/deployment.md)**.
 
 ## Security
 
-See [docs/threat-model.md](docs/threat-model.md) for the full STRIDE threat model.
+See [docs/threat-model.md](docs/threat-model.md) for the full STRIDE threat model
+(trust boundaries, risk ratings, findings & remediations).
 
 Key controls:
-- JWT Bearer tokens (HMAC-SHA256, 8h expiry, Redis blacklist on logout)
-- bcrypt password hashing (work factor 10)
-- Role-based authorization: Customer / Employee / Admin / Agent
+- JWT Bearer tokens (HMAC-SHA256, 8h expiry, Redis blacklist enforced on logout)
+- bcrypt password hashing (BCrypt.Net-Next default cost factor)
+- Role-based authorization: Customer / Employee / Admin / Agent, plus per-tenant
+  object-level checks (`RoomAccessService`)
 - Docker network segmentation: `frontend-net`, `backend-net`, `ticket-net`
 - Secrets via environment variables — never committed to git
+- CI: build gate, TruffleHog secret scan, CycloneDX SBOM
+
+## Diagrams
+
+See [docs/diagrams.md](docs/diagrams.md) for the domain model class diagram, the
+Core-MS / Token-MS architecture, and the entity-relationship diagram.
 
 ## Project Structure
 
@@ -157,7 +165,10 @@ shellyspotter/
 │   ├── ShellySpotter.TokenService/ # JWT auth + Redis
 │   └── ShellySpotter.WebApp/       # Blazor Server frontend
 ├── docs/
-│   └── threat-model.md
+│   ├── threat-model.md
+│   ├── diagrams.md             # class + ER diagrams
+│   ├── deployment.md
+│   └── demo-setup.md
 ├── docker-compose.yml
 ├── .env.example
 └── ShellySpotter.sln

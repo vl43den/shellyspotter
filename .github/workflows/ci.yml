@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Build the whole solution in Release ──────────────────────────────────────
+  build:
+    name: Build (.NET 8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore ShellySpotter.sln
+
+      - name: Build
+        run: dotnet build ShellySpotter.sln --no-restore -c Release
+
+  # ── Secret scanning with TruffleHog ──────────────────────────────────────────
+  secret-scan:
+    name: Secret scan (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install TruffleHog
+        run: curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+      # Scan the working tree. --only-verified fails the build only on secrets
+      # that validate against a live provider, so the demo passwords in
+      # .env.example don't cause false positives. .git/bin/obj are excluded
+      # (they hold the CI checkout token and build outputs, not source secrets).
+      - name: Scan filesystem for verified secrets
+        run: trufflehog filesystem . --only-verified --fail --exclude-paths .github/trufflehog-exclude.txt
+
+  # ── Software Bill of Materials (CycloneDX) ───────────────────────────────────
+  sbom:
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install CycloneDX tool
+        run: dotnet tool install --global CycloneDX
+
+      - name: Generate SBOM
+        run: dotnet CycloneDX ShellySpotter.sln -o ./sbom -F Json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: ./sbom/bom.json

@@ -40,16 +40,20 @@ The web interface is available at **http://localhost**
 
 Redmine runs at **http://localhost:3000** (setup wizard on first run — create a project named `shellyspotter`)
 
-### Default Users (seeded by Token-MS)
+### Demo accounts (development only — change before any real deployment)
 
-| Username | Password | Role |
-|----------|----------|------|
-| admin | Admin1234! | Admin |
-| employee1 | Employee1234! | Employee |
-| customer1 | Customer1234! | Customer |
-| agent | Agent1234!Secret | Agent |
+Token-MS seeds these accounts on first run. Their passwords are **not** in source —
+they come from your `.env` (`ADMIN_PASSWORD`, `EMPLOYEE_PASSWORD`, `CUSTOMER_PASSWORD`,
+`AGENT_PASSWORD`). The development defaults shipped in `.env.example` are:
 
-> Change all passwords in production via `POST /api/auth/register` (Admin only).
+| Username | `.env` variable | Default | Role |
+|----------|-----------------|---------|------|
+| admin | `ADMIN_PASSWORD` | `Admin1234!` | Admin |
+| employee1 | `EMPLOYEE_PASSWORD` | `Employee1234!` | Employee |
+| customer1 | `CUSTOMER_PASSWORD` | `Customer1234!` | Customer |
+| agent | `AGENT_PASSWORD` | `Agent1234!Secret` | Agent |
+
+> Change all of these in `.env` before any non-local deployment.
 
 ## Agent Setup (Raspberry Pi 5)
 
@@ -58,26 +62,29 @@ Redmine runs at **http://localhost:3000** (setup wizard on first run — create 
    curl -fsSL https://get.docker.com | sh
    ```
 
-2. Copy `src/ShellySpotter.Agent/` to the Pi and create `appsettings.json`:
+2. Copy `src/ShellySpotter.Agent/` to the Pi and create a local
+   `appsettings.Production.json` (gitignored — keep the password out of source):
    ```json
    {
      "Agent": {
        "CoreBaseUrl": "https://<your-core-domain>",
        "TokenServiceUrl": "https://<your-token-domain>",
        "AgentUsername": "agent",
-       "AgentPassword": "Agent1234!Secret",
+       "AgentPassword": "<must match AGENT_PASSWORD from .env>",
        "RoomId": 1,
        "ShellyBaseUrl": "http://<shelly-ip>",
        "PollIntervalSeconds": 30
      }
    }
    ```
+   (Or pass it as an environment variable `Agent__AgentPassword` instead.)
 
 3. Build & run:
    ```bash
    docker build -t shelly-agent .
    docker run -d --restart=unless-stopped --network=host \
-     -v $(pwd)/appsettings.json:/app/appsettings.json \
+     -e DOTNET_ENVIRONMENT=Production \
+     -v $(pwd)/appsettings.Production.json:/app/appsettings.Production.json:ro \
      shelly-agent
    ```
 

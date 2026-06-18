@@ -4,17 +4,30 @@ using System.Text.Json;
 
 namespace ShellySpotter.TokenService.Services;
 
-public class UserService(IConnectionMultiplexer redis, ILogger<UserService> logger)
+public class UserService(IConnectionMultiplexer redis, IConfiguration config, ILogger<UserService> logger)
 {
     private readonly IDatabase _db = redis.GetDatabase();
     private const string UserPrefix = "user:";
 
+    // Seed passwords come from configuration/environment (Seed:*), never from
+    // source. Demo values live only in .env / .env.example. An account whose
+    // password is not configured is simply skipped.
     public async Task SeedDefaultUsersAsync()
     {
-        await EnsureUserAsync(new RegisterRequest("admin", "admin@shellyspotter.local", "Admin1234!", "Admin"));
-        await EnsureUserAsync(new RegisterRequest("employee1", "emp@shellyspotter.local", "Employee1234!", "Employee"));
-        await EnsureUserAsync(new RegisterRequest("customer1", "customer@shellyspotter.local", "Customer1234!", "Customer"));
-        await EnsureUserAsync(new RegisterRequest("agent", "agent@shellyspotter.local", "Agent1234!Secret", "Agent"));
+        await SeedIfConfigured("admin", "admin@shellyspotter.local", "Admin", config["Seed:AdminPassword"]);
+        await SeedIfConfigured("employee1", "emp@shellyspotter.local", "Employee", config["Seed:EmployeePassword"]);
+        await SeedIfConfigured("customer1", "customer@shellyspotter.local", "Customer", config["Seed:CustomerPassword"]);
+        await SeedIfConfigured("agent", "agent@shellyspotter.local", "Agent", config["Seed:AgentPassword"]);
+    }
+
+    private async Task SeedIfConfigured(string username, string email, string role, string? password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning("No seed password configured for {Username}; skipping", username);
+            return;
+        }
+        await EnsureUserAsync(new RegisterRequest(username, email, password, role));
     }
 
     public async Task<User?> ValidateCredentialsAsync(string username, string password)

@@ -80,6 +80,7 @@ services:
       ConnectionStrings__DefaultConnection: >-
         Server=core-db;Database=ShellySpotter;User Id=sa;
         Password=${DB_PASSWORD};TrustServerCertificate=True;
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD}"
       Jwt__Secret: "${JWT_SECRET}"
       Jwt__Issuer: "shellyspotter-token"
       Jwt__Audience: "shellyspotter"
@@ -88,6 +89,8 @@ services:
       Redmine__ProjectId: "shellyspotter"
     depends_on:
       core-db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       token-ms:
         condition: service_started

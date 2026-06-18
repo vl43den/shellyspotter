@@ -1,0 +1,63 @@
+name: CD
+
+# Continuous Deployment: on every push to main, build all four service images
+# and publish them to the GitHub Container Registry (ghcr.io). The published
+# images are the deployable artifact — a target host pulls them
+# (docker pull ghcr.io/vl43den/shellyspotter-<service>:latest) and runs them with
+# the production topology from docker-compose.prod.yml (Caddy/TLS reverse proxy).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.service }} image
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: core
+            context: ./src/ShellySpotter.Core
+          - service: token-ms
+            context: ./src/ShellySpotter.TokenService
+          - service: webapp
+            context: ./src/ShellySpotter.WebApp
+          - service: agent
+            context: ./src/ShellySpotter.Agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags & labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-${{ matrix.service }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

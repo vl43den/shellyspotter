@@ -155,6 +155,18 @@ Key controls:
 See [docs/diagrams.md](docs/diagrams.md) for the domain model class diagram, the
 Core-MS / Token-MS architecture, and the entity-relationship diagram.
 
+## CI / CD
+
+GitHub Actions, defined in [.github/workflows](.github/workflows):
+
+- **CI** (`ci.yml`) — on every PR and push to `main`: build the solution, run a
+  TruffleHog secret scan, and generate a CycloneDX SBOM.
+- **CD** (`cd.yml`) — on every push to `main`: build all four service images and
+  publish them to the GitHub Container Registry as
+  `ghcr.io/vl43den/shellyspotter-<service>:latest` (and a commit-SHA tag). A host
+  deploys by pulling those images and running them with `docker-compose.prod.yml`
+  (Caddy/TLS reverse proxy).
+
 ## Project Structure
 
 ```

@@ -33,6 +33,12 @@
 </div>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Restore the session so the menu shows the correct links after a reload.
+        await Auth.InitializeAsync();
+    }
+
     private async Task Logout()
     {
         await Auth.LogoutAsync();

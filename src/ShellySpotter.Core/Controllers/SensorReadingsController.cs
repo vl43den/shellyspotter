@@ -11,11 +11,13 @@ namespace ShellySpotter.Core.Controllers;
 [ApiController]
 [Route("api/rooms/{roomId:int}/readings")]
 [Authorize]
-public class SensorReadingsController(AppDbContext db, AlertService alertService) : ControllerBase
+public class SensorReadingsController(AppDbContext db, AlertService alertService, RoomAccessService roomAccess) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SensorReadingDto>>> GetReadings(int roomId, [FromQuery] int limit = 100)
     {
+        if (!await roomAccess.CanAccessRoomAsync(User, roomId)) return Forbid();
+
         var room = await db.Rooms.FindAsync(roomId);
         if (room is null) return NotFound();
 
@@ -32,6 +34,8 @@ public class SensorReadingsController(AppDbContext db, AlertService alertService
     [HttpGet("latest")]
     public async Task<ActionResult<SensorReadingDto>> GetLatest(int roomId)
     {
+        if (!await roomAccess.CanAccessRoomAsync(User, roomId)) return Forbid();
+
         var reading = await db.SensorReadings
             .Where(r => r.RoomId == roomId)
             .OrderByDescending(r => r.Timestamp)

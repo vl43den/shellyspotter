@@ -4,17 +4,20 @@ using Microsoft.EntityFrameworkCore;
 using ShellySpotter.Core.Data;
 using ShellySpotter.Core.DTOs;
 using ShellySpotter.Core.Models;
+using ShellySpotter.Core.Services;
 
 namespace ShellySpotter.Core.Controllers;
 
 [ApiController]
 [Route("api/rooms/{roomId:int}/ping-targets")]
 [Authorize]
-public class PingTargetsController(AppDbContext db) : ControllerBase
+public class PingTargetsController(AppDbContext db, RoomAccessService roomAccess) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PingTargetDto>>> GetTargets(int roomId)
     {
+        if (!await roomAccess.CanAccessRoomAsync(User, roomId)) return Forbid();
+
         var targets = await db.PingTargets
             .Where(t => t.RoomId == roomId)
             .Select(t => new PingTargetDto(t.Id, t.RoomId, t.Name, t.IpAddress, t.IsEnabled))
@@ -49,6 +52,13 @@ public class PingTargetsController(AppDbContext db) : ControllerBase
     [HttpGet("{id:int}/results")]
     public async Task<ActionResult<IEnumerable<PingResultDto>>> GetResults(int roomId, int id, [FromQuery] int limit = 50)
     {
+        if (!await roomAccess.CanAccessRoomAsync(User, roomId)) return Forbid();
+
+        // Ensure the target actually belongs to this room — otherwise an
+        // authorized room owner could read results of an unrelated room's target.
+        var targetInRoom = await db.PingTargets.AnyAsync(t => t.Id == id && t.RoomId == roomId);
+        if (!targetInRoom) return NotFound();
+
         var results = await db.PingResults
             .Where(r => r.PingTargetId == id)
             .OrderByDescending(r => r.Timestamp)

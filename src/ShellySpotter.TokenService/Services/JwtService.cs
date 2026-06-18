@@ -20,13 +20,14 @@ public class JwtService(IConfiguration config, IConnectionMultiplexer redis)
         var jti = Guid.NewGuid().ToString();
         var expiry = DateTime.UtcNow.AddHours(8);
 
+        // Both validators run with RoleClaimType = "role", so the single "role"
+        // claim is enough for [Authorize(Roles = ...)] to work.
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("role", user.Role),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim("role", user.Role)
         };
 
         var token = new JwtSecurityToken(

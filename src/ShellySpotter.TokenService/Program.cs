@@ -22,6 +22,9 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Preserve raw JWT claim names so "role"-based authorization and the
+        // jti lookup work the same way they do in Core-MS.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -31,7 +34,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = builder.Configuration["Jwt:Audience"],
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            NameClaimType = "sub",
+            RoleClaimType = "role"
+        };
+        options.Events = new JwtBearerEvents
+        {
+            // Reject already-revoked tokens on Token-MS's own protected endpoints.
+            OnTokenValidated = async ctx =>
+            {
+                var jwtService = ctx.HttpContext.RequestServices.GetRequiredService<JwtService>();
+                var jti = ctx.Principal?.FindFirst("jti")?.Value;
+                if (jti is not null && await jwtService.IsTokenBlacklistedAsync(jti))
+                    ctx.Fail("Token has been revoked");
+            }
         };
     });
 

@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShellySpotter.Core.Data;
 using ShellySpotter.Core.DTOs;
+using ShellySpotter.Core.Services;
 
 namespace ShellySpotter.Core.Controllers;
 
 [ApiController]
 [Route("api/rooms/{roomId:int}/alerts")]
 [Authorize]
-public class AlertsController(AppDbContext db) : ControllerBase
+public class AlertsController(AppDbContext db, RoomAccessService roomAccess) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AlertDto>>> GetAlerts(int roomId, [FromQuery] bool openOnly = false)
     {
+        if (!await roomAccess.CanAccessRoomAsync(User, roomId)) return Forbid();
+
         var room = await db.Rooms.FindAsync(roomId);
         if (room is null) return NotFound();
 

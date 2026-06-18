@@ -53,6 +53,22 @@ public class AuthService(IHttpClientFactory httpClientFactory, ProtectedSessionS
 
     public async Task LogoutAsync()
     {
+        // Revoke the token server-side (Redis blacklist) before dropping local state,
+        // so a copied token can't keep being used after logout.
+        if (CurrentUser is { } user)
+        {
+            try
+            {
+                var client = httpClientFactory.CreateClient("token-ms");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+                await client.PostAsync("/api/auth/logout", null);
+            }
+            catch
+            {
+                // Best-effort: even if the revoke call fails we still clear the session below.
+            }
+        }
+
         CurrentUser = null;
         await sessionStorage.DeleteAsync(SessionKey);
     }

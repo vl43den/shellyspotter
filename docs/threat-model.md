@@ -3,10 +3,17 @@
 We made this threat model using the four steps from the course
 (*Introduction to threat modeling*):
 
-1. Draw what the system does and what we want to protect.
-2. Ask "what could possibly go wrong?" and list the threats.
-3. Decide what to do with each one: avoid, reduce, transfer, or accept.
-4. Build the important fixes and review the model now and then.
+This document presents a STRIDE-based threat model applied to our ShellySpotter platform. It identifies the
+assets worth protecting, the trust boundaries data crosses, the threats against each element, and
+the controls that mitigate them. It also records concrete vulnerabilities found during modelling
+and how they were remediated (§7).
+
+**In scope:** the four .NET services (Agent, Core-MS, Token-MS, WebApp), their data stores (MSSQL,
+Redis), the Redmine ticket system, and the network/CI security around them.
+
+**Out of scope (current iteration):** physical hardening of the Shelly device and the Raspberry Pi,
+and the customer's local network — these are deployed at the customer site and assumed to sit on a
+physically controlled, trusted LAN.
 
 ---
 
@@ -20,13 +27,17 @@ customer's firewall needs no open incoming port.
 
 ```mermaid
 flowchart TB
-    subgraph CUST["Customer site (trusted LAN)"]
-        SHELLY["Shelly sensor<br/>door / temp / battery"]
-        AGENT["Agent (Raspberry Pi)"]
+    subgraph CUST[" Customer site, trusted LAN"]
+        SHELLY["Shelly D/W2<br/>HTTP, LAN-only"]
+        AGENT["Agent / Raspberry Pi<br/>.NET worker"]
     end
 
-    subgraph EDGE["Cloud edge (public)"]
-        CADDY["Caddy reverse proxy (TLS)"]
+    subgraph INET[" Internet, untrusted"]
+        USER["Browser<br/>Customer / Employee / Admin"]
+    end
+
+    subgraph EDGE[" Cloud edge, public ingress"]
+        CADDY["Caddy reverse proxy<br/>TLS termination"]
     end
 
     subgraph BACK["Backend (not reachable from internet)"]

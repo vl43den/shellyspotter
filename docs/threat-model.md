@@ -2,7 +2,7 @@
 
 ## 1. Purpose & Scope
 
-This document is a STRIDE-based threat model for the ShellySpotter platform. It identifies the
+This document presents a STRIDE-based threat model applied to our ShellySpotter platform. It identifies the
 assets worth protecting, the trust boundaries data crosses, the threats against each element, and
 the controls that mitigate them. It also records concrete vulnerabilities found during modelling
 and how they were remediated (§7).
@@ -39,16 +39,16 @@ rule — the Agent stays unreachable from the internet.
 
 ```mermaid
 flowchart TB
-    subgraph CUST["🔒 Customer site — trusted LAN"]
+    subgraph CUST[" Customer site, trusted LAN"]
         SHELLY["Shelly D/W2<br/>HTTP, LAN-only"]
         AGENT["Agent / Raspberry Pi<br/>.NET worker"]
     end
 
-    subgraph INET["🌐 Internet — untrusted"]
+    subgraph INET[" Internet, untrusted"]
         USER["Browser<br/>Customer / Employee / Admin"]
     end
 
-    subgraph EDGE["☁️ Cloud edge — public ingress"]
+    subgraph EDGE[" Cloud edge, public ingress"]
         CADDY["Caddy reverse proxy<br/>TLS termination"]
     end
 

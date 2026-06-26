@@ -1,4 +1,4 @@
-# Threat Model — ShellySpotter
+# Threat Model: ShellySpotter
 
 We made this threat model using the four steps from the course
 (*Introduction to threat modeling*):

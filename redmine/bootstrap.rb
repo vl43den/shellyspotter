@@ -2,7 +2,7 @@
 #
 # Idempotent Redmine bootstrap — run once on every `docker compose up` so a FRESH
 # host gets a working ticket integration with no manual clicking. Executed by the
-# one-shot `redmine-bootstrap` service via `bundle exec rails runner`.
+# one-shot `redmine-bootstrap` service via `rails runner`.
 #
 # It makes the on-prem Redmine match what Core's TicketService expects:
 #   * default configuration data (trackers, statuses, priorities, workflows, roles)

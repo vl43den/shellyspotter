@@ -127,6 +127,13 @@ services:
       - redmine-db-data:/var/lib/mysql
     networks:
       - ticket-net
+    healthcheck:
+      # Gate redmine on a ready DB so its first boot doesn't error on a fresh volume.
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
     restart: unless-stopped
 
   redmine:
@@ -142,8 +149,46 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
-      - redmine-db
+      redmine-db:
+        condition: service_healthy
     networks:
       - ticket-net
       - backend-net
+    healthcheck:
+      # Considered healthy once the app answers HTTP (i.e. db:migrate has finished),
+      # which gates the one-shot bootstrap below. Uses ruby (always in the image).
+      test: ["CMD", "ruby", "-rnet/http", "-e", "Net::HTTP.get(URI('http://localhost:3000/login'))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
     restart: unless-stopped
+
+  # ── Redmine bootstrap (one-shot, idempotent) ──────────────────────────────
+  # Makes a FRESH Redmine usable by Core with NO manual setup: loads default data
+  # (trackers/statuses/priorities/workflows), enables the REST API, pins the admin
+  # API key to REDMINE_API_KEY, and creates the "shellyspotter" project. Runs after
+  # Redmine is healthy (migrations done) and exits. Safe to re-run on every `up`.
+  redmine-bootstrap:
+    image: redmine:5
+    environment:
+      REDMINE_DB_MYSQL: redmine-db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: "${REDMINE_DB_PASSWORD}"
+      REDMINE_SECRET_KEY_BASE: "${REDMINE_SECRET_KEY}"
+      SS_API_KEY: "${REDMINE_API_KEY}"
+      SS_ADMIN_PASSWORD: "${REDMINE_ADMIN_PASSWORD:-ShellyAdmin2026!}"
+    volumes:
+      - ./redmine/bootstrap.rb:/bootstrap.rb:ro
+    # Default redmine entrypoint generates config/database.yml from the env above,
+    # then runs our script. `rails` (not `rake`) so the entrypoint sets up the DB config.
+    command: ["rails", "runner", "/bootstrap.rb"]
+    depends_on:
+      redmine:
+        condition: service_healthy
+      redmine-db:
+        condition: service_started
+    networks:
+      - ticket-net
+    restart: "no"

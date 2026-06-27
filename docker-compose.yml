@@ -157,7 +157,7 @@ services:
     healthcheck:
       # Considered healthy once the app answers HTTP (i.e. db:migrate has finished),
       # which gates the one-shot bootstrap below. Uses ruby (always in the image).
-      test: ["CMD", "ruby", "-rnet/http", "-e", "Net::HTTP.get(URI('http://localhost:3000/login'))"]
+      test: ["CMD", "ruby", "-rnet/http", "-e", "u=URI('http://localhost:3000/login'); r=Net::HTTP.get_response(u); exit(!(r.is_a?(Net::HTTPSuccess) || r.is_a?(Net::HTTPRedirection)))"]
       interval: 10s
       timeout: 5s
       retries: 30

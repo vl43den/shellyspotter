@@ -80,7 +80,10 @@ end
 # 6) Ensure the "shellyspotter" project exists with issue tracking + all trackers.
 project = Project.find_by_identifier('shellyspotter')
 if project
-  log.call("project 'shellyspotter' already exists")
+  project.enabled_module_names |= ['issue_tracking']
+  project.trackers = Tracker.all
+  project.save!
+  log.call("project 'shellyspotter' updated (issue_tracking + trackers ensured)")
 else
   project = Project.new(name: 'ShellySpotter', identifier: 'shellyspotter', is_public: false)
   project.enabled_module_names = ['issue_tracking']

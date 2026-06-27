@@ -178,7 +178,7 @@ services:
       REDMINE_DB_PASSWORD: "${REDMINE_DB_PASSWORD}"
       REDMINE_SECRET_KEY_BASE: "${REDMINE_SECRET_KEY}"
       SS_API_KEY: "${REDMINE_API_KEY}"
-      SS_ADMIN_PASSWORD: "${REDMINE_ADMIN_PASSWORD:-ShellyAdmin2026!}"
+      SS_ADMIN_PASSWORD: "${REDMINE_ADMIN_PASSWORD:?Set REDMINE_ADMIN_PASSWORD in .env}"
     volumes:
       - ./redmine/bootstrap.rb:/bootstrap.rb:ro
     # Default redmine entrypoint generates config/database.yml from the env above,

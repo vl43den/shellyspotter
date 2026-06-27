@@ -98,11 +98,11 @@ We also note which property matters most: **C**onfidentiality, **I**ntegrity,
 ## The threats and what we do
 
 We went through the diagram with **STRIDE** and asked, for each part, "what could
-go wrong, and *how*?". Each threat gets a decision. Accepting a small risk is fine
+go wrong, and *how*?". Each threat gets a decision, while accepting a small risk is fine
 when fixing it is not worth it yet. The "what we do" column is meant to be
 actionable: an open item should tell a developer what to build and how to check it.
 
-Not every measure is coded yet — per the course that is fine. The Status column
+Not every measure is coded yet which is fine per the course. The Status column
 says honestly what is built (done), still planned, or consciously accepted.
 
 | # | What could go wrong, and how | STRIDE | Decision | What we do about it | Status |

@@ -3,6 +3,7 @@
 @inject AuthService Auth
 @inject CoreApiService Api
 @inject NavigationManager Nav
+@implements IAsyncDisposable
 
 <PageTitle>Dashboard — ShellySpotter</PageTitle>
 
@@ -107,11 +108,30 @@ else
     private Dictionary<int, SensorReadingVm?> _latestReadings = new();
     private Dictionary<int, List<AlertVm>> _openAlerts = new();
 
+    private readonly CancellationTokenSource _cts = new();
+
     protected override async Task OnInitializedAsync()
     {
         await Auth.InitializeAsync();
         if (!Auth.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
         await LoadDataAsync();
+        _ = AutoRefreshAsync(); // fire-and-forget: refresh the dashboard every 5s
+    }
+
+    // Polls Core every 5 seconds and re-renders, so the dashboard stays live
+    // without a manual page reload. Stops when the component is disposed.
+    private async Task AutoRefreshAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(_cts.Token))
+            {
+                await LoadDataAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { /* component disposed */ }
     }
 
     private async Task LoadDataAsync()
@@ -128,5 +148,11 @@ else
     {
         await Api.ResolveAlertAsync(roomId, alertId);
         await LoadDataAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _cts.CancelAsync();
+        _cts.Dispose();
     }
 }

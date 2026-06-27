@@ -41,7 +41,7 @@ public class UserService(IConnectionMultiplexer redis, IConfiguration config, IL
     {
         var json = await _db.StringGetAsync($"{UserPrefix}{username.ToLower()}");
         if (!json.HasValue) return null;
-        return JsonSerializer.Deserialize<User>(json!);
+        return JsonSerializer.Deserialize<User>((string)json!);
     }
 
     public async Task<bool> RegisterAsync(RegisterRequest request)

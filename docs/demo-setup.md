@@ -5,8 +5,8 @@ demo over a phone hotspot.
 
 ## 1. One-time prerequisites
 - Docker Desktop
-- .NET 8 SDK
-- `dotnet-ef` tool: `dotnet tool install --global dotnet-ef --version 8.0.0`
+- .NET 10 SDK
+- `dotnet-ef` tool: `dotnet tool install --global dotnet-ef --version 10.0.0`
 
 ## 2. Secrets
 ```bash

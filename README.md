@@ -18,7 +18,7 @@ Server room monitoring system using Shelly Door/Window 2, a Raspberry Pi 5 appli
 
 | Service | Technology | Purpose |
 |---------|-----------|---------|
-| **Agent** | .NET 8 Worker Service | Polls Shelly, pings IPs, reports to Core-MS |
+| **Agent** | .NET 10 Worker Service | Polls Shelly, pings IPs, reports to Core-MS |
 | **Core-MS** | ASP.NET Core Web API + MSSQL | Business logic, REST API, alerts, tickets |
 | **Token-MS** | ASP.NET Core Web API + Redis | JWT issuance, user management |
 | **WebApp** | Blazor Server | Dashboard, configuration UI |
